@@ -55,8 +55,8 @@
 
 
 import psycopg2
-from psycopg2 import SQL
-from psycopg2.sql import Identifier
+# from psycopg2 import SQL
+# from psycopg2.sql import Identifier
 
 conn = psycopg2.connect(
         database = 'Python_DB',
@@ -151,6 +151,7 @@ def change_client(conn, client_id, name=None, surname=None, email=None, phone_nu
     """
     params = (name, surname, email, client_id)
     cursor(SQL_query, params)
+    print('change_client, отработал апдейт clients')
     """Теперь апдейтим таблицу phone_numbers"""
     SQL_query = """
     UPDATE phone_numbers SET 
@@ -159,30 +160,8 @@ def change_client(conn, client_id, name=None, surname=None, email=None, phone_nu
     """
     params = (phone_number, client_id)
     cursor(SQL_query, params)
-    
+    print('change_client, отработал апдейт phone_numbers')
     return print('change_client отработала')
-
-
-# # 4. Функция, позволяющая изменить данные о клиенте. 
-# # Интерпретатор почему-то пишет TypeError: 'module' object is not callable
-# def change_client(conn, client_id, name=None, surname=None, email=None, phone_number=None):
-#     arg_list = {'name': name, 
-#                 'surname': surname, 
-#                 'email': email, 
-#                 'phone_number': phone_number}
-#     for key, arg in arg_list.items():
-#         if arg:
-#             if key == 'phone_number':
-#                 with conn.cursor() as cur:
-#                     cur.execute(sql("""
-#                                   UPDATE phone_numbers SET {}=%s WHERE client_id=%s
-#                         """).format(Identifier(key)), (arg, client_id))
-#             else:
-#                 with conn.cursor() as cur:
-#                     cur.execute(sql("""
-#                                   UPDATE clients SET {}=%s WHERE client_id=%s
-#                         """).format(Identifier(key)), (arg, client_id))
-#     return print('Данные изменены успешно.')
 
 
 # 5. Функция, позволяющая удалить телефон для существующего клиента.
@@ -240,25 +219,9 @@ def delete_client(client_id):
 #     a = cur.execute(SQL_query)
 #     print(a)
 
-def change_client2(client_id, name=None, surname=None, email=None, phone_number=None):
-    global cur
-    arg_list = {'name': name, 
-                'surname': surname, 
-                'email': email, 
-                'phone_number': phone_number}
-    for key, arg in arg_list.items():
-        if arg:
-            if key == 'phone_number':
-                cur.execute(SQL("""
-                              UPDATE phone_numbers SET {}=%s WHERE client_id=%s
-                    """).format(Identifier(key)), (arg, client_id))
-            else:
-                with conn.cursor() as cur:
-                    cur.execute(SQL("""
-                                  UPDATE clients SET {}=%s WHERE client_id=%s
-                        """).format(Identifier(key)), (arg, client_id))
 
-change_client2(1, phone_number='161000')
+
+
 
 # # Дропаем базу
 # drop_db()
@@ -269,7 +232,7 @@ change_client2(1, phone_number='161000')
 # add_client('Second', 'Surname2', '222@daw.com')
 # add_client('Third', 'Surname3', '333@daw.com')
 # add_phone(2, '891111112')
-# change_client(conn, 1, name = 'Измененный3', phone_number = '24012023017')
+change_client(conn, 1, name = 'Измененный3', phone_number = '24012023017')
 # select_function(conn, 'Измененный2')
 # delete_phone_number(2, '891111112')
 # delete_client(2)
