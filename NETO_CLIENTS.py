@@ -179,6 +179,15 @@ def change_client2(client_id, name=None, surname=None, email=None, phone_number=
             values_to_upd[key] = arg
     print(values_to_upd)
     
+    from sqlalchemy import create_engine
+    engine = create_engine('', future, kwargs)
+
+    
+    upd_test = update(clients).where(
+        clients.c.client_id == 1).values(
+            surname='Отлаживатель', 
+            phone_number='260120241534',)
+    print(upd_test, 'upd_test отработала')
 change_client2(1, 
                surname='Отлаживатель', 
                phone_number='260120241534')
