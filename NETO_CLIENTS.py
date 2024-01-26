@@ -58,6 +58,8 @@ import psycopg2
 # from psycopg2 import SQL
 # from psycopg2.sql import Identifier
 
+from sqlalchemy import update
+
 conn = psycopg2.connect(
         database = 'Python_DB',
         user = 'postgres',
@@ -163,6 +165,25 @@ def change_client(conn, client_id, name=None, surname=None, email=None, phone_nu
     print('change_client, отработал апдейт phone_numbers')
     return print('change_client отработала')
 
+def change_client2(client_id, name=None, surname=None, email=None, phone_number=None):
+    # arg_list собираем все входные данные, в т.ч. None 
+    arg_list = {'name': name, 
+                'surname': surname, 
+                'email': email, 
+                'phone_number': phone_number}
+    # values_to_upd - заготовка для сбора изменяемых данных
+    values_to_upd = {}
+    # Бежим по arg_list, выбираем только то, что передали при вызове функции
+    for key, arg in arg_list.items():
+        if arg:
+            values_to_upd[key] = arg
+    print(values_to_upd)
+    
+change_client2(1, 
+               surname='Отлаживатель', 
+               phone_number='260120241534')
+
+
 
 # 5. Функция, позволяющая удалить телефон для существующего клиента.
 def delete_phone_number(client_id, phone_number):
@@ -232,7 +253,7 @@ def delete_client(client_id):
 # add_client('Second', 'Surname2', '222@daw.com')
 # add_client('Third', 'Surname3', '333@daw.com')
 # add_phone(2, '891111112')
-change_client(conn, 1, name = 'Измененный3', phone_number = '24012023017')
+# change_client(conn, 1, name = 'Измененный3', phone_number = '24012023017')
 # select_function(conn, 'Измененный2')
 # delete_phone_number(2, '891111112')
 # delete_client(2)
