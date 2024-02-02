@@ -156,12 +156,12 @@ def change_client(client_id, name=None, surname=None, email=None, phone_number=N
         if arg:
             # развилка на то, какую табличку апдейтить
             if key == 'phone_number':
-                with conn.cursor() as cursor2:
-                    cursor2.execute(SQL("UPDATE phone_numbers SET {}=%s WHERE client_id=%s").format(Identifier(key)), (arg, client_id))
+                with conn.cursor() as cursor_tmp:
+                    cursor_tmp.execute(SQL("UPDATE phone_numbers SET {}=%s WHERE client_id=%s").format(Identifier(key)), (arg, client_id))
                 conn.close
             else:
-                with conn.cursor() as cursor2:
-                    cursor2.execute(SQL("UPDATE Clients SET {}=%s WHERE client_id=%s").format(Identifier(key)), (arg, client_id))
+                with conn.cursor() as cursor_tmp:
+                    cursor_tmp.execute(SQL("UPDATE Clients SET {}=%s WHERE client_id=%s").format(Identifier(key)), (arg, client_id))
                 conn.close                
     print('change_client отработала\n')
 
@@ -190,22 +190,49 @@ def delete_client(client_id):
     cursor(SQL_query, params)
     return print('delete_client отработала\n')
 
-# # 7. Функция, позволяющая найти клиента по его данным: имени, фамилии, email или телефону.
-def find_client(client_id, name=None, surname=None, email=None, phone_number=None):
+# 7. Функция, позволяющая найти клиента по его данным: имени, фамилии, email или телефону.
+def find_client(name=None, surname=None, email=None, phone_number=None):
     # arg_list собираем все входные данные, в т.ч. None 
-    arg_list = {'name': name, 
-                'surname': surname, 
-                'email': email, 
-                'phone_number': phone_number}
+    # arg_list = {'name': name, 
+    #             'surname': surname, 
+    #             'email': email, 
+    #             'phone_number': phone_number}
 
-    # Бежим по arg_list
-    for key, arg in arg_list.items():
-        
-        
-        
-        
-        
-        pass
+    # SQL_query = """
+    # SELECT *
+    # FROM clients c
+    # JOIN phone_numbers pn 
+    # ON c.client_id = pn.client_id
+    # WHERE (name = %(name)s OR %(name)s IS NULL)
+    # AND (surname = %(surname)s OR %(surname)s IS NULL)
+    # AND (email = %(email)s OR %(email)s IS NULL)
+    # AND (phone_number = %(phone_number)s OR %(phone_number)s IS NULL);
+    # """
+    with conn.cursor() as cursor_tmp:
+        cursor_tmp.execute(
+            """
+            SELECT *
+            FROM clients c
+            JOIN phone_numbers pn 
+            ON c.client_id = pn.client_id
+            WHERE (c.name = %(name)s OR c.name IS NULL)
+            AND (c.surname = %(surname)s OR c.surname IS NULL)
+            AND (c.email = %(email)s OR c.email IS NULL)
+            AND (pn.phone_number = %(phone_number)s OR pn.phone_number IS NULL);
+            """, {'name': name, 
+                    'surname': surname, 
+                    'email': email, 
+                    'phone_number': phone_number})
+        result = cursor_tmp.fetchall()
+        print(result)
+    conn.close
+
+    # print(cursor_f(SQL_query, arg_list))
+    
+    print('find_client отработала')
+    return
+
+
 
 
 
@@ -218,13 +245,16 @@ def find_client(client_id, name=None, surname=None, email=None, phone_number=Non
 # create_table()  
 
 # add_client('John', 'Daw', '123@daw.com')
+# add_client('John', 'SecondDaw', 'ksdjng@find.com')
 # add_client('Second', 'Surname2', '222@daw.com')
 # add_client('Third', 'Surname3', '333@daw.com')
-# add_phone(3, '891111112')
+# add_phone(4, '891111114')
 # delete_phone_number(2, '891111112')
 # delete_client(2)
 # # find_client(conn, surname = 'John')
 # change_client(3, 
-#                 surname='Change_Surname3',
+#                 surname='Rasrhijvb',
 #                 name='Change_Name3',
-#                 phone_number='978132567')
+#                 phone_number='891111114')
+
+find_client(name='Change_Name3', surname='Rasrhijvb', email='333@daw.com', phone_number='978132567  ')
