@@ -55,10 +55,11 @@
 
 
 import psycopg2
-# from psycopg2 import SQL
+# from psycopg2 import sql
 # from psycopg2.sql import Identifier
+from psycopg2.sql import SQL, Identifier
 
-from sqlalchemy import update
+# from sqlalchemy import update
 
 conn = psycopg2.connect(
         database = 'Python_DB',
@@ -116,7 +117,7 @@ def create_table():
         );       
     """
     cursor(SQL_query)
-    return print('create_table отработала')
+    return print('create_table отработала\n')
 
 
 # 2. Функция, позволяющая добавить нового клиента.
@@ -127,7 +128,7 @@ def add_client(name, surname, email):
     """
     params = (name, surname, email)
     cursor(SQL_query, params)
-    return print('add_client отработала')
+    return print('add_client отработала\n')
 
   
 # 3. Функция, позволяющая добавить телефон для существующего клиента.
@@ -138,60 +139,31 @@ def add_phone(client_id, phone_number):
     """
     params = (client_id, phone_number)
     cursor(SQL_query, params) 
-    return print('add_phone отработала')
+    return print('add_phone отработала\n')
 
 
-# 4. Функция, позволяющая изменить данные о клиенте. (Меняем концепцию)
-def change_client(conn, client_id, name=None, surname=None, email=None, phone_number=None):
-    """Сначала апдейтим таблицу clients"""
-    SQL_query = """
-    UPDATE clients SET 
-    name=%s, 
-    surname=%s, 
-    email=%s 
-    WHERE client_id=%s;
-    """
-    params = (name, surname, email, client_id)
-    cursor(SQL_query, params)
-    print('change_client, отработал апдейт clients')
-    """Теперь апдейтим таблицу phone_numbers"""
-    SQL_query = """
-    UPDATE phone_numbers SET 
-    phone_number=%s
-    WHERE client_id=%s;
-    """
-    params = (phone_number, client_id)
-    cursor(SQL_query, params)
-    print('change_client, отработал апдейт phone_numbers')
-    return print('change_client отработала')
-
-def change_client2(client_id, name=None, surname=None, email=None, phone_number=None):
+# 4. Функция, позволяющая изменить данные о клиенте. (По рекомендациям Булыгина)
+def change_client(client_id, name=None, surname=None, email=None, phone_number=None):
     # arg_list собираем все входные данные, в т.ч. None 
     arg_list = {'name': name, 
                 'surname': surname, 
                 'email': email, 
                 'phone_number': phone_number}
-    # values_to_upd - заготовка для сбора изменяемых данных
-    values_to_upd = {}
-    # Бежим по arg_list, выбираем только то, что передали при вызове функции
+
+    # Бежим по arg_list
     for key, arg in arg_list.items():
+        # выбираем только то, что передали при вызове функции
         if arg:
-            values_to_upd[key] = arg
-    print(values_to_upd)
-    
-    from sqlalchemy import create_engine
-    engine = create_engine('', future, kwargs)
-
-    
-    upd_test = update(clients).where(
-        clients.c.client_id == 1).values(
-            surname='Отлаживатель', 
-            phone_number='260120241534',)
-    print(upd_test, 'upd_test отработала')
-change_client2(1, 
-               surname='Отлаживатель', 
-               phone_number='260120241534')
-
+            # развилка на то, какую табличку апдейтить
+            if key == 'phone_number':
+                with conn.cursor() as cursor2:
+                    cursor2.execute(SQL("UPDATE phone_numbers SET {}=%s WHERE client_id=%s").format(Identifier(key)), (arg, client_id))
+                conn.close
+            else:
+                with conn.cursor() as cursor2:
+                    cursor2.execute(SQL("UPDATE Clients SET {}=%s WHERE client_id=%s").format(Identifier(key)), (arg, client_id))
+                conn.close                
+    print('change_client отработала\n')
 
 
 # 5. Функция, позволяющая удалить телефон для существующего клиента.
@@ -203,7 +175,7 @@ def delete_phone_number(client_id, phone_number):
     """
     params = (client_id, phone_number)
     cursor(SQL_query, params)
-    return print('delete_phone_number отработала')
+    return print('delete_phone_number отработала\n')
 
 
 # 6. Функция, позволяющая удалить существующего клиента.
@@ -216,38 +188,24 @@ def delete_client(client_id):
     """
     params = (client_id, )
     cursor(SQL_query, params)
-    return print('delete_client отработала')
+    return print('delete_client отработала\n')
 
 # # 7. Функция, позволяющая найти клиента по его данным: имени, фамилии, email или телефону.
-# def find_client(cur, name=None, surname=None, email=None, phone_number=None):
-#     arg_list = {'name': name, 
-#                 'surname': surname, 
-#                 'email': email, 
-#                 'phone_number': phone_number}
-#     for_ident_1 = []
-#     for_ident_2 = []
-#     arg_not_none = {}
-#     for key, arg in arg_list.items():
-#         if arg:
-#             arg_not_none[key] = arg
-#             for_ident_1.append(key)
-#             print('for_ident_1', for_ident_1)
-#             for_ident_2.append(arg)
-#             print('for_ident_2', for_ident_2)
-#     # print(arg_not_none)
-#     # print(tuple(arg_not_none))  
-#     SQL_query = sql.SQL("""
-#                         SELECT * FROM clients c
-#                         JOIN phone_numbers pn
-#                         ON c.client_id = pn.client_id 
-#                         WHERE {} 
-#                         """).format(
-#             sql.SQL(' = ').join(map(sql.Identifier, arg_not_none))
-#             # sql.SQL(' = ').join(map(sql.Identifier, arg_not_none)), sql.Identifier('clients')
-#         )
-#     print(SQL_query)
-#     a = cur.execute(SQL_query)
-#     print(a)
+def find_client(client_id, name=None, surname=None, email=None, phone_number=None):
+    # arg_list собираем все входные данные, в т.ч. None 
+    arg_list = {'name': name, 
+                'surname': surname, 
+                'email': email, 
+                'phone_number': phone_number}
+
+    # Бежим по arg_list
+    for key, arg in arg_list.items():
+        
+        
+        
+        
+        
+        pass
 
 
 
@@ -255,15 +213,18 @@ def delete_client(client_id):
 
 # # Дропаем базу
 # drop_db()
+
 # # Проверяем все функции по порядку
 # create_table()  
 
 # add_client('John', 'Daw', '123@daw.com')
 # add_client('Second', 'Surname2', '222@daw.com')
 # add_client('Third', 'Surname3', '333@daw.com')
-# add_phone(2, '891111112')
-# change_client(conn, 1, name = 'Измененный3', phone_number = '24012023017')
-# select_function(conn, 'Измененный2')
+# add_phone(3, '891111112')
 # delete_phone_number(2, '891111112')
 # delete_client(2)
-# find_client(conn, surname = 'John')
+# # find_client(conn, surname = 'John')
+# change_client(3, 
+#                 surname='Change_Surname3',
+#                 name='Change_Name3',
+#                 phone_number='978132567')
